@@ -1,4 +1,4 @@
-# IoT-aware-BPMN-Editor. 
+# IoT-Aware-BPMN-Editor --
 
 This editor facilitates IoT modelling in BPMN. Key IoT modelling elements such as sensor, actuator, etc are added to the editor’s toolkit.
 
