@@ -1,6 +1,6 @@
-# IoT-aware-BPMN-Editor. 
+# IoT-aware-BPMN- and- XPDL-Editor. 
 
-This editor incorporates IoT modelling facility with BPMN. Key IoT modelling elements are added to the editor’s toolkit.
+This editor incorporates IoT modelling elements for BPMN. Key IoT modelling elements and Artifacts are added to the editor’s toolkit.
 
 Link to Website: https://pradeerat.github.io/IoT-aware-BPMN-Editor/
 

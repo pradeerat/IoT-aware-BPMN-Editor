@@ -27,7 +27,7 @@
                 antn_width: 14,
                 antn_line_len: 200,
 					
-					/*
+				/*
                 dataobj_width: 40,
                 dataobj_height: 52,
                 dataobj_line_len: 100,
@@ -68,289 +68,289 @@
                 }
             }
         },
-            pool,
-            swimlanes = [],
-            widgets = [],
-            links = [],
-            canvas,
-            parentElem,
-            linkable = {
-                enable: false,
-                start: null,
-                end: null,
-                style: 0,
-                flylink: null,
-                down: false,
-                canvasmousemove: function (event) {
-                    if (event.buttons == 1) {
-                        linkable.flylink.end.x = getCursorPos(event).x;
-                        linkable.flylink.end.y = getCursorPos(event).y;
-                        updateLink(linkable.flylink);
-                    }
-                },
+    pool,
+    swimlanes = [],
+    widgets = [],
+    links = [],
+    canvas,
+    parentElem,
+    linkable = {
+        enable: false,
+        start: null,
+        end: null,
+        style: 0,
+        flylink: null,
+        down: false,
+        canvasmousemove: function (event) {
+            if (event.buttons == 1) {
+                linkable.flylink.end.x = getCursorPos(event).x;
+                linkable.flylink.end.y = getCursorPos(event).y;
+                updateLink(linkable.flylink);
+            }
+        },
 
-                canvasmouseup: function () {
-                    linkable.end = null;
-                    linkable.start = null;
-                    linkable.flylink.elem.remove();
-                    linkable.flylink = null;
-                    linkable.down = false;
-                    canvas.off("mousemove", linkable.canvasmousemove);
-                    canvas.off("mouseup", linkable.canvasmouseup);
-                },
+        canvasmouseup: function () {
+            linkable.end = null;
+            linkable.start = null;
+            linkable.flylink.elem.remove();
+            linkable.flylink = null;
+            linkable.down = false;
+            canvas.off("mousemove", linkable.canvasmousemove);
+            canvas.off("mouseup", linkable.canvasmouseup);
+        },
 
-                mouseenter: function () {
-                    SVG.get(this.getAttribute("id")).filter(function (add) {
-                        add.colorMatrix('matrix', [.343, .669, .119, 0, 0, .249, .626, .130, 0, 0, .172, .334, .111, 0, 0, .000, .000, .000, 1, 0]);
-                    });
-                },
+        mouseenter: function () {
+            SVG.get(this.getAttribute("id")).filter(function (add) {
+                add.colorMatrix('matrix', [.343, .669, .119, 0, 0, .249, .626, .130, 0, 0, .172, .334, .111, 0, 0, .000, .000, .000, 1, 0]);
+            });
+        },
 
-                mouseleave: function () {
-                    SVG.get(this.getAttribute("id")).attr("filter", "");
-                },
+        mouseleave: function () {
+            SVG.get(this.getAttribute("id")).attr("filter", "");
+        },
 
-                mousedown: function (event) {
-                    if (event.buttons == 1) {
-                        linkable.start = getItemByNode(this);
-                        linkable.flylink = initLink(linkable.start, { x: null, y: null }, { style: linkable.style, fly: true });
-                        linkable.down = true;
-                        canvas.on("mousemove", linkable.canvasmousemove);
-                        canvas.on("mouseup", linkable.canvasmouseup); 1
-                    }
-                },
+        mousedown: function (event) {
+            if (event.buttons == 1) {
+                linkable.start = getItemByNode(this);
+                linkable.flylink = initLink(linkable.start, { x: null, y: null }, { style: linkable.style, fly: true });
+                linkable.down = true;
+                canvas.on("mousemove", linkable.canvasmousemove);
+                canvas.on("mouseup", linkable.canvasmouseup); 1
+            }
+        },
 
-                mouseup: function (event) {
-                    if (!linkable.down) return;
-                    event.stopPropagation();
-                    linkable.end = getItemByNode(this);
-                    if ((linkable.start != linkable.end) && (linkable.start.data.event != linkable.end) && (linkable.end.data.event != linkable.start)) {
-                        var lnk = initLink(linkable.start, linkable.end, { style: linkable.style });
-                        updateLink(lnk);
-                    }
-                    linkable.end = null;
-                    linkable.start = null;
-                    linkable.flylink.elem.remove();
-                    linkable.flylink = null;
-                    linkable.down = false;
-                    canvas.off("mousemove", linkable.canvasmousemove);
-                    canvas.off("mouseup", linkable.canvasmouseup);
+        mouseup: function (event) {
+            if (!linkable.down) return;
+            event.stopPropagation();
+            linkable.end = getItemByNode(this);
+            if ((linkable.start != linkable.end) && (linkable.start.data.event != linkable.end) && (linkable.end.data.event != linkable.start)) {
+                var lnk = initLink(linkable.start, linkable.end, { style: linkable.style });
+                updateLink(lnk);
+            }
+            linkable.end = null;
+            linkable.start = null;
+            linkable.flylink.elem.remove();
+            linkable.flylink = null;
+            linkable.down = false;
+            canvas.off("mousemove", linkable.canvasmousemove);
+            canvas.off("mouseup", linkable.canvasmouseup);
+        }
+
+    },
+
+    contextmenu = {
+        enable: function (widget, en) {
+            eventManager(widget, "contextmenu", this.handler, en);
+        },
+
+        handler: function (event) {
+            event.preventDefault();
+            var widget = getItemByNode(this);
+            contextmenu.show({
+                "Delete": function () { deletewidget(widget); $(this).parent().remove(); },
+                "Bring on top": function () { bringOntop(widget); $(this).parent().remove(); },
+            }, getCursorPos(event).x, getCursorPos(event).y);
+            return false;
+        },
+
+        show: function (items, x, y) {
+            var menu = $("<div></div>")
+                .addClass("contextmenu")
+                .attr("tabindex", 0)
+                .appendTo(parentElem)
+                .css({ top: y, left: x })
+                .focus()
+                .blur(function () {
+                    $(this).remove();
+                });
+            for (var item in items) {
+                if (items.hasOwnProperty(item)) {
+                    menu.append($("<div></div>")
+                                    .addClass("contextmenu-item")
+                                    .text(item)
+                                    .click(items[item])
+                                );
                 }
+            }
+        }
+    },
 
+    editlabel = {
+        widget: {
+            enable: function (widget, en) {
+                eventManager(widget, "dblclick", this.handler, en);
             },
 
-            contextmenu = {
-                enable: function (widget, en) {
-                    eventManager(widget, "contextmenu", this.handler, en);
-                },
+            handler: function (event) {
 
-                handler: function (event) {
-                    event.preventDefault();
-                    var widget = getItemByNode(this);
-                    contextmenu.show({
-                        "Delete": function () { deletewidget(widget); $(this).parent().remove(); },
-                        "Bring on top": function () { bringOntop(widget); $(this).parent().remove(); },
-                    }, getCursorPos(event).x, getCursorPos(event).y);
-                    return false;
-                },
+                var widget = getItemByNode(this),
+                    text = "",                            
+                    path = constants.labelpathstring[widget.wid_type],
+                    pos = getAbsPos(widget.elem);
 
-                show: function (items, x, y) {
-                    var menu = $("<div></div>")
-                        .addClass("contextmenu")
-                        .attr("tabindex", 0)
-                        .appendTo(parentElem)
-                        .css({ top: y, left: x })
-                        .focus()
-                        .blur(function () {
+                if (typeof path == "object") {
+                    path = path[widget.wid_id];
+                }
+
+                if (widget.data.text) {
+                    text = widget.data.text.content.trim();
+                }
+                
+                editlabel.show(pos, text, function (text) {
+                    if (widget.data.text) {
+                        widget.data.text.remove();
+                        delete widget.data.text;
+                }
+                    if (text != "") {
+                        widget.data.text = widget.elem.text(text).font({
+                            family: 'Calibri',
+                            size: 13
+                        }).path(path).attr("class", "item-label");
+                    }
+                });
+
+            }
+        },
+
+        link: {
+            enable: function (lnk, en) {
+                eventManager(lnk, "click", this.handler, en);
+            },
+
+            handler: function (event) {
+                var lnk = getItemByNode(this),
+                    text = "",
+                    path = lnk.elem.attr("d"),
+                    pos = getAbsPos(lnk.elem);
+
+                if (lnk.data.text) {
+                    text = lnk.data.text.content.trim();
+                }
+
+                editlabel.show(pos, text, function (text) {
+                    if (lnk.data.text) {
+                        lnk.data.text.remove();
+                        delete lnk.data.text;
+                    }
+                    if (text != "") {
+                        lnk.data.text = canvas.text(text).font({
+                            family: 'Calibri',
+                            size: 13
+                        }).path(path).attr("class", "item-label");
+                        lnk.data.text.textPath.attr('startOffset', 10);
+                    }
+                });
+            }
+
+        },
+
+        pool: {
+            enable: function (pool, en) {
+                eventManager(pool.lblbox, "dblclick", this.handler, en);
+                if (en === false) {
+                    pool.lblbox.elem.attr("class", pool.lblbox.elem.attr("class").replace("pool-labelbox-hover", ""));
+                } else {
+                    pool.lblbox.elem.attr("class", pool.lblbox.elem.attr("class") + " pool-labelbox-hover");
+                }
+            },
+
+            handler: function (event) {
+                var lblbox = pool.lblbox;
+                text = "",
+                pos = getCursorPos(event);
+
+                if (lblbox.text) {
+                    text = lblbox.text.content.trim();
+                }
+
+                editlabel.show(pos, text, function (text) {
+                    if (lblbox.text) {
+                        lblbox.text.remove();
+                        delete lblbox.text;
+                    }
+                    if (text != "") {
+                        lblbox.text = pool.elem.text(text).font({
+                            family: 'Calibri',
+                            size: 15,
+                            anchor: 'middle'
+                        }).path(lblbox.textpath).attr("class", "item-label pool-label");
+                        lblbox.text.textPath.attr('startOffset', '50%');
+                    }
+                });
+            }
+        },
+
+        swimlane: {
+            enable: function (swl, en) {
+                eventManager(swl.lblbox, "dblclick", this.handler, en);
+                if (en === false) {
+                    swl.lblbox.elem.attr("class", swl.lblbox.elem.attr("class").replace("swimlane-labelbox-hover", ""));
+                } else {
+                    swl.lblbox.elem.attr("class", swl.lblbox.elem.attr("class") + " swimlane-labelbox-hover");
+                }
+            },
+
+            handler: function (event) {
+                var swl = getItemByNode(this),
+                    text = "",
+                    pos = getCursorPos(event);
+
+                if (swl.lblbox.text) {
+                    text = swl.lblbox.text.content.trim();
+                }
+
+                editlabel.show(pos, text, function (text) {
+                    if (swl.lblbox.text) {
+                        swl.lblbox.text.remove();
+                        delete swl.lblbox.text;
+                    }
+                    if (text != "") {
+                        swl.lblbox.text = swl.elem.text(text).font({
+                            family: 'Calibri',
+                            size: 14,
+                            anchor: 'middle'
+                        }).path(swl.lblbox.textpath).attr("class", "item-label swimlane-label");
+                        swl.lblbox.text.textPath.attr('startOffset', '50%');
+                    }
+                });
+            }
+        },
+
+        show: function (pos, text, callback) {
+            closePopupWindows();
+            $("<div></div>")
+                .addClass("popup-window")
+                .addClass("textedit")
+                .append($("<textarea></textarea>")
+                    .addClass("textbox-label")
+                    .val(text))
+                        .append($("<div></div>")
+                
+                    .addClass("popup-window-footer")
+                    .append($("<button></button>")
+                        .addClass("popup-window-button")
+                        .text("Set")
+                        .click(function () {
+                            callback($(this).parent().siblings("textarea").val());
+                            $(this).parent().parent().remove();
+                        }))
+                    .append($("<button></button>")
+                        .addClass("popup-window-button")
+                        .text("Cancel")
+                        .click(function () {
+                            $(this).parent().parent().remove();
+                        })))
+                    .appendTo(parentElem)
+
+                    .css({ left: pos.x, top: pos.y })
+                    
+                    .keypress(function (e) {
+                        if (e.keyCode == 27)//escape
                             $(this).remove();
-                        });
-                    for (var item in items) {
-                        if (items.hasOwnProperty(item)) {
-                            menu.append($("<div></div>")
-                                            .addClass("contextmenu-item")
-                                            .text(item)
-                                            .click(items[item])
-                                        );
-                        }
-                    }
-                }
-            },
-
-            editlabel = {
-                widget: {
-                    enable: function (widget, en) {
-                        eventManager(widget, "dblclick", this.handler, en);
-                    },
-
-                    handler: function (event) {
-
-                        var widget = getItemByNode(this),
-                            text = "",                            
-                            path = constants.labelpathstring[widget.wid_type],
-                            pos = getAbsPos(widget.elem);
-
-                        if (typeof path == "object") {
-                            path = path[widget.wid_id];
-                        }
-
-                        if (widget.data.text) {
-                            text = widget.data.text.content.trim();
-                        }
-                        
-                        editlabel.show(pos, text, function (text) {
-                            if (widget.data.text) {
-                                widget.data.text.remove();
-                                delete widget.data.text;
-                        }
-                            if (text != "") {
-                                widget.data.text = widget.elem.text(text).font({
-                                    family: 'Calibri',
-                                    size: 13
-                                }).path(path).attr("class", "item-label");
-                            }
-                        });
-
-                    }
-                },
-
-                link: {
-                    enable: function (lnk, en) {
-                        eventManager(lnk, "click", this.handler, en);
-                    },
-
-                    handler: function (event) {
-                        var lnk = getItemByNode(this),
-                            text = "",
-                            path = lnk.elem.attr("d"),
-                            pos = getAbsPos(lnk.elem);
-
-                        if (lnk.data.text) {
-                            text = lnk.data.text.content.trim();
-                        }
-
-                        editlabel.show(pos, text, function (text) {
-                            if (lnk.data.text) {
-                                lnk.data.text.remove();
-                                delete lnk.data.text;
-                            }
-                            if (text != "") {
-                                lnk.data.text = canvas.text(text).font({
-                                    family: 'Calibri',
-                                    size: 13
-                                }).path(path).attr("class", "item-label");
-                                lnk.data.text.textPath.attr('startOffset', 10);
-                            }
-                        });
-                    }
-
-                },
-
-                pool: {
-                    enable: function (pool, en) {
-                        eventManager(pool.lblbox, "dblclick", this.handler, en);
-                        if (en === false) {
-                            pool.lblbox.elem.attr("class", pool.lblbox.elem.attr("class").replace("pool-labelbox-hover", ""));
-                        } else {
-                            pool.lblbox.elem.attr("class", pool.lblbox.elem.attr("class") + " pool-labelbox-hover");
-                        }
-                    },
-
-                    handler: function (event) {
-                        var lblbox = pool.lblbox;
-                        text = "",
-                        pos = getCursorPos(event);
-
-                        if (lblbox.text) {
-                            text = lblbox.text.content.trim();
-                        }
-
-                        editlabel.show(pos, text, function (text) {
-                            if (lblbox.text) {
-                                lblbox.text.remove();
-                                delete lblbox.text;
-                            }
-                            if (text != "") {
-                                lblbox.text = pool.elem.text(text).font({
-                                    family: 'Calibri',
-                                    size: 15,
-                                    anchor: 'middle'
-                                }).path(lblbox.textpath).attr("class", "item-label pool-label");
-                                lblbox.text.textPath.attr('startOffset', '50%');
-                            }
-                        });
-                    }
-                },
-
-                swimlane: {
-                    enable: function (swl, en) {
-                        eventManager(swl.lblbox, "dblclick", this.handler, en);
-                        if (en === false) {
-                            swl.lblbox.elem.attr("class", swl.lblbox.elem.attr("class").replace("swimlane-labelbox-hover", ""));
-                        } else {
-                            swl.lblbox.elem.attr("class", swl.lblbox.elem.attr("class") + " swimlane-labelbox-hover");
-                        }
-                    },
-
-                    handler: function (event) {
-                        var swl = getItemByNode(this),
-                            text = "",
-                            pos = getCursorPos(event);
-
-                        if (swl.lblbox.text) {
-                            text = swl.lblbox.text.content.trim();
-                        }
-
-                        editlabel.show(pos, text, function (text) {
-                            if (swl.lblbox.text) {
-                                swl.lblbox.text.remove();
-                                delete swl.lblbox.text;
-                            }
-                            if (text != "") {
-                                swl.lblbox.text = swl.elem.text(text).font({
-                                    family: 'Calibri',
-                                    size: 14,
-                                    anchor: 'middle'
-                                }).path(swl.lblbox.textpath).attr("class", "item-label swimlane-label");
-                                swl.lblbox.text.textPath.attr('startOffset', '50%');
-                            }
-                        });
-                    }
-                },
-
-                show: function (pos, text, callback) {
-                    closePopupWindows();
-                    $("<div></div>")
-                            .addClass("popup-window")
-                            .addClass("textedit")
-                            .append($("<textarea></textarea>")
-                                .addClass("textbox-label")
-                                .val(text))
-                            		.append($("<div></div>")
-                            
-                                .addClass("popup-window-footer")
-                                .append($("<button></button>")
-                                    .addClass("popup-window-button")
-                                    .text("Set")
-                                    .click(function () {
-                                        callback($(this).parent().siblings("textarea").val());
-                                        $(this).parent().parent().remove();
-                                    }))
-                                .append($("<button></button>")
-                                    .addClass("popup-window-button")
-                                    .text("Cancel")
-                                    .click(function () {
-                                        $(this).parent().parent().remove();
-                                    })))
-                            .appendTo(parentElem)
-
-                            .css({ left: pos.x, top: pos.y })
-                            
-                            .keypress(function (e) {
-                                if (e.keyCode == 27)//escape
-                                    $(this).remove();
-                            })
-                            .ready(function () {
-                                $(this).find("textarea").focus();
-                            });
+                    })
+                    .ready(function () {
+                        $(this).find("textarea").focus();
+                    });
                 }
             },
   
@@ -363,7 +363,7 @@
                 { type: "activity", id: 6, name: "collector", src: "bpmn pic/collector_task.png" },                    
                 { type: "activity", id: 7, name: "intermediary", src: "bpmn pic/interm_task.png" },  
                 { type: "activity", id: 8, name: "eventstreams", src: "bpmn pic/events_task.png" },  
-                                                                                   
+                                                                       
                 { type: "event", id: 1, name: "StartIntermidiate", src: "bpmn pic/event (1).png" },
                 { type: "event", id: 2, name: "Start", src: "bpmn pic/event (2).png" },
                 { type: "event", id: 3, name: "End", src: "bpmn pic/event (3).png" },
@@ -410,66 +410,62 @@
             ];
 
         constants.labelpathstring.activity = (new pathDrawer())
-                                                   .M(3, 0).L(constants.sizes.act_width - 3, 0)
-                                                   .M(3, 13).L(constants.sizes.act_width - 3, 13)
-                                                   .M(3, 27).L(constants.sizes.act_width - 3, 27)
-                                                   .toString();
-                                                                                                                                       
+                .M(3, 0).L(constants.sizes.act_width - 3, 0)
+                .M(3, 13).L(constants.sizes.act_width - 3, 13)
+                .M(3, 27).L(constants.sizes.act_width - 3, 27)
+                .toString();
+                                                                            
         constants.labelpathstring.data = (new pathDrawer())
-                                                   .M(3, 0).L(constants.sizes.act_width - 3, 0)
-                                                   .M(3, 13).L(constants.sizes.act_width - 3, 13)
-                                                   .M(3, 27).L(constants.sizes.act_width - 3, 27)
-                                                   .toString();                                          
-/*        
+                .M(3, 0).L(constants.sizes.act_width - 3, 0)
+                .M(3, 13).L(constants.sizes.act_width - 3, 13)
+                .M(3, 27).L(constants.sizes.act_width - 3, 27)
+                .toString();                                          
+        /*        
         constants.labelpathstring.data = {
             annotation: (new pathDrawer())
-                        .M(constants.sizes.antn_width + 3, -10).l(constants.sizes.antn_line_len, 0)
-                        .M(constants.sizes.antn_width, 3).l(constants.sizes.antn_line_len, 0)
-                        .M(constants.sizes.antn_width, 16).l(constants.sizes.antn_line_len, 0)
-                        .M(constants.sizes.antn_width + 3, 29).l(constants.sizes.antn_line_len, 0)
-                        .toString(),
+                .M(constants.sizes.antn_width + 3, -10).l(constants.sizes.antn_line_len, 0)
+                .M(constants.sizes.antn_width, 3).l(constants.sizes.antn_line_len, 0)
+                .M(constants.sizes.antn_width, 16).l(constants.sizes.antn_line_len, 0)
+                .M(constants.sizes.antn_width + 3, 29).l(constants.sizes.antn_line_len, 0)
+                .toString(),
             dataobject: (new pathDrawer())
-                        .M(constants.sizes.dataobj_width, -10).l(constants.sizes.dataobj_line_len, 0)
-                        .M(constants.sizes.dataobj_width, 3).l(constants.sizes.dataobj_line_len, 0)
-                        .M(constants.sizes.dataobj_width, 16).l(constants.sizes.dataobj_line_len, 0)
-                        .M(constants.sizes.dataobj_width, 29).l(constants.sizes.dataobj_line_len, 0)
-                        .toString(),
+                .M(constants.sizes.dataobj_width, -10).l(constants.sizes.dataobj_line_len, 0)
+                .M(constants.sizes.dataobj_width, 3).l(constants.sizes.dataobj_line_len, 0)
+                .M(constants.sizes.dataobj_width, 16).l(constants.sizes.dataobj_line_len, 0)
+                .M(constants.sizes.dataobj_width, 29).l(constants.sizes.dataobj_line_len, 0)
+                .toString(),
             database: (new pathDrawer())
-                        .M(constants.sizes.database_width, -10).l(constants.sizes.database_line_len, 0)
-                        .M(constants.sizes.database_width, 3).l(constants.sizes.database_line_len, 0)
-                        .M(constants.sizes.database_width, 16).l(constants.sizes.database_line_len, 0)
-                        .M(constants.sizes.database_width, 29).l(constants.sizes.database_line_len, 0)
-                        .toString(),
- 
+                .M(constants.sizes.database_width, -10).l(constants.sizes.database_line_len, 0)
+                .M(constants.sizes.database_width, 3).l(constants.sizes.database_line_len, 0)
+                .M(constants.sizes.database_width, 16).l(constants.sizes.database_line_len, 0)
+                .M(constants.sizes.database_width, 29).l(constants.sizes.database_line_len, 0)
+                .toString(),
             smartobject: (new pathDrawer())
-                        .M(constants.sizes.smartobject_width, -10).l(constants.sizes.smartobject_line_len, 0)
-                        .M(constants.sizes.smartobject_width, 3).l(constants.sizes.smartobject_line_len, 0)
-                        .M(constants.sizes.smartobject_width, 16).l(constants.sizes.smartobject_line_len, 0)
-                        .M(constants.sizes.smartobject_width, 29).l(constants.sizes.smartobject_line_len, 0)
-                        .toString(),
-
+                .M(constants.sizes.smartobject_width, -10).l(constants.sizes.smartobject_line_len, 0)
+                .M(constants.sizes.smartobject_width, 3).l(constants.sizes.smartobject_line_len, 0)
+                .M(constants.sizes.smartobject_width, 16).l(constants.sizes.smartobject_line_len, 0)
+                .M(constants.sizes.smartobject_width, 29).l(constants.sizes.smartobject_line_len, 0)
+                .toString(),
             inputevent: (new pathDrawer())
-                        .M(constants.sizes.inputevent_width, -10).l(constants.sizes.inputevent_line_len, 0)
-                        .M(constants.sizes.inputevent_width, 3).l(constants.sizes.inputevent_line_len, 0)
-                        .M(constants.sizes.inputevent_width, 16).l(constants.sizes.inputevent_line_len, 0)
-                        .M(constants.sizes.inputevent_width, 29).l(constants.sizes.inputevent_line_len, 0)
-                        .toString(),
-
+                .M(constants.sizes.inputevent_width, -10).l(constants.sizes.inputevent_line_len, 0)
+                .M(constants.sizes.inputevent_width, 3).l(constants.sizes.inputevent_line_len, 0)
+                .M(constants.sizes.inputevent_width, 16).l(constants.sizes.inputevent_line_len, 0)
+                .M(constants.sizes.inputevent_width, 29).l(constants.sizes.inputevent_line_len, 0)
+                .toString(),
             outputevent: (new pathDrawer())
-                        .M(constants.sizes.outputevent_width, -10).l(constants.sizes.outputevent_line_len, 0)
-                        .M(constants.sizes.outputevent_width, 3).l(constants.sizes.outputevent_line_len, 0)
-                        .M(constants.sizes.outputevent_width, 16).l(constants.sizes.outputevent_line_len, 0)
-                        .M(constants.sizes.outputevent_width, 29).l(constants.sizes.outputevent_line_len, 0)
-                        .toString(),
-
+                .M(constants.sizes.outputevent_width, -10).l(constants.sizes.outputevent_line_len, 0)
+                .M(constants.sizes.outputevent_width, 3).l(constants.sizes.outputevent_line_len, 0)
+                .M(constants.sizes.outputevent_width, 16).l(constants.sizes.outputevent_line_len, 0)
+                .M(constants.sizes.outputevent_width, 29).l(constants.sizes.outputevent_line_len, 0)
+                .toString(),
             physicalentity: (new pathDrawer())
-                        .M(constants.sizes.physicalentity_width, -10).l(constants.sizes.physicalentity_line_len, 0)
-                        .M(constants.sizes.physicalentity_width, 3).l(constants.sizes.physicalentity_line_len, 0)
-                        .M(constants.sizes.physicalentity_width, 16).l(constants.sizes.physicalentity_line_len, 0)
-                        .M(constants.sizes.physicalentity_width, 29).l(constants.sizes.physicalentity_line_len, 0)
-                        .toString()
+                .M(constants.sizes.physicalentity_width, -10).l(constants.sizes.physicalentity_line_len, 0)
+                .M(constants.sizes.physicalentity_width, 3).l(constants.sizes.physicalentity_line_len, 0)
+                .M(constants.sizes.physicalentity_width, 16).l(constants.sizes.physicalentity_line_len, 0)
+                .M(constants.sizes.physicalentity_width, 29).l(constants.sizes.physicalentity_line_len, 0)
+                .toString()
         };
-  */                                                                                                                                               
+        */                                                                         
         function getAbsPos(obj) {
             var pos = { x: 0, y: 0 };
             while (obj.parent) {
@@ -524,7 +520,7 @@
                 en = true;
             var elem = item.elem;
                 i = 0;
-//alert("elem: "+elem);
+            //alert("elem: "+elem);
              
             //while (elem.type == "g" || elem.type == "text") {
             while (typeof elem !== 'undefined' && (elem.type == "g" || elem.type == "text")) {
@@ -532,7 +528,7 @@
             };
             var elem = item.wid_type ? item.elem.first() : item.elem;
             
-				/*
+			/*
             if (en) {
                 elem.on(eventname, handler);
             }
@@ -589,12 +585,9 @@
         };
 
         function updateLink(lnk) {
-
-//alert("lnk: "+lnk);
+            //alert("lnk: "+lnk);
             var points = getpoints(lnk.start, lnk.end, lnk.data.fly);
-//alert("points: "+points);
- 
-            //var pathstring = (new pathDrawer).M(points.start.x, points.start.y).L(points.end.x, points.end.y).toString();
+            //alert("points: "+points);
             if (points.start)
             	var pathstring = (new pathDrawer).M(points.start.x, points.start.y).L(points.end.x, points.end.y).toString();
 
@@ -647,7 +640,7 @@
         }
 
         function getItemByNode(node) {
-//alert("node "+node);
+        //alert("node "+node);
             if (node.tagName == "path") {
                 var link;
                 links.forEach(function (lnk) {
@@ -759,7 +752,6 @@
                     widget.join.push({ x: constants.sizes.emevt_width, y: constants.sizes.emevt_height / 2 });
                     widget.join.push({ x: constants.sizes.emevt_width / 2, y: constants.sizes.emevt_height });
                     break;
- 
                 case "data":
                     widget.elem.image(widget.data.src, constants.sizes.dataobj_width, constants.sizes.dataobj_height);
                     widget.join.push({ x: constants.sizes.dataobj_width / 2, y: 0 });
@@ -1193,7 +1185,7 @@
 
                         case "activity":
 
-//alert("widget.data.id:  "+widget.data.id);
+                        //alert("widget.data.id:  "+widget.data.id);
 
                             if (widget.data.event)
                                 break;
@@ -1853,7 +1845,6 @@
         bpmnEditor.init("canvas");
 
         $(".widgetbox-wrapper").accordion();
-        
 
         $("img.widgetbox-swimlane").click(function () {
             var num = $(this).attr("data-swimlane");
@@ -1895,7 +1886,6 @@
                 bpmnEditor.setSwimlane(num);
            }
         });
-
 
         $("img.widgetbox-activity")
             .add("img.widgetbox-gateway")
@@ -1948,7 +1938,6 @@
 
         $(".toolbox-button").click(function () {
         
-//alert("TEST2");
             var editor;
             $("<div></div>")
                 .addClass("dialog-screenmask")
